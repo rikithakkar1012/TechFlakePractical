@@ -5,6 +5,7 @@ import android.view.View
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.techflakepractical.R
 import com.android.techflakepractical.data.VideosModel
 import com.android.techflakepractical.domain.common.Resource
 import com.android.techflakepractical.domain.common.SafeObserver
@@ -23,7 +24,7 @@ class VideoGridActivity : BaseViewModelActivity<VideoGridViewModel>(),
 
     private val giphyVideoAdapter by lazy { VideoAdapter(this::onItemSelected) }
 
-    override fun getContentResource() = com.android.techflakepractical.R.layout.activity_giphy_videos
+    override fun getContentResource() = R.layout.activity_giphy_videos
 
     override fun buildViewModel(): VideoGridViewModel {
         return ViewModelProviders.of(this)[VideoGridViewModel::class.java]
@@ -31,14 +32,12 @@ class VideoGridActivity : BaseViewModelActivity<VideoGridViewModel>(),
 
     override fun initViews() {
         super.initViews()
-        // HIDE ActionBar(if exist in style) of root project module
         supportActionBar?.hide()
         rvGiphyVideos.setHasFixedSize(true)
         rvGiphyVideos.adapter = giphyVideoAdapter
 
         // call this method only once
         viewModel.configureAutoComplete()
-        //viewModel.onInputStateChanged(etQuery.text.toString().trim())
 
         ivClear.setOnClickListener(this)
         ivBack.setOnClickListener(this)
@@ -75,13 +74,13 @@ class VideoGridActivity : BaseViewModelActivity<VideoGridViewModel>(),
             this,
             SafeObserver(this::handleClearButtonVisibility)
         )
-        viewModel.autoCompleteLiveData.observe(this, SafeObserver(this::handleAutoCompleteData))
+        viewModel.giphyResponseLiveData.observe(this, SafeObserver(this::handleAutoCompleteData))
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            com.android.techflakepractical.R.id.ivBack -> onBackPressed()
-            com.android.techflakepractical.R.id.ivClear -> etQuery.setText("")
+            R.id.ivBack -> onBackPressed()
+            R.id.ivClear -> etQuery.setText("")
         }
     }
 
@@ -100,23 +99,23 @@ class VideoGridActivity : BaseViewModelActivity<VideoGridViewModel>(),
 
     private fun handleAutocompleteSuccessResponse(result: VideosModel?) {
         progressBar.hide()
-        result?.let {
-            giphyVideoAdapter.setList(it.data, viewModel.pageNumber == 1,this)
+        result?.let { it ->
+            giphyVideoAdapter.setList(it.data, viewModel.pageNumber == 1, this)
+
         }
     }
 
     private fun handleAutocompleteErrorResponse(response: Resource<VideosModel>) {
         progressBar.hide()
-        giphyVideoAdapter.clearList()
         response.throwable?.let {
             ToastUtils.showToast(this, it.message)
         }
     }
 
     private fun onItemSelected(selectedPlace: VideosModel.DataBean) {
-
         val intent = Intent(this@VideoGridActivity, VideoPlayerActivity::class.java)
         intent.putExtra("url", selectedPlace.images!!.original_mp4!!.mp4)
+        intent.putExtra("id", selectedPlace.id)
         startActivity(intent)
 
     }

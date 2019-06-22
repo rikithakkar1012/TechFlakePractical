@@ -1,16 +1,17 @@
-package com.android.techflakepractical.database.model
+package com.android.techflakepractical.data.database.model
 
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.android.techflakepractical.database.*
+import com.android.techflakepractical.data.database.*
+import kotlinx.android.parcel.Parcelize
 
 
 @Entity(tableName = tableGiphyVideos)
-class GiphyVideosModel(id: String, imgUrl: String, videoUrl: String, upVote:Int, downVote: Int) {
-
-    constructor() : this("", "","",0,0)
+@Parcelize
+class GiphyVideosModel() : Parcelable {
 
     @PrimaryKey
     @ColumnInfo(name = columnId)

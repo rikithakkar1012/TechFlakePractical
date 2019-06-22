@@ -2,11 +2,13 @@ package com.android.techflakepractical.presentation.exoplayer
 
 import android.graphics.Color
 import android.net.Uri
-import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
+import com.android.techflakepractical.R
+import com.android.techflakepractical.domain.common.SafeObserver
+import com.android.techflakepractical.presentation.common.BaseViewModelActivity
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
@@ -17,7 +19,7 @@ import com.google.android.exoplayer2.util.Util
 import kotlinx.android.synthetic.main.activity_video_player.*
 
 
-class VideoPlayerActivity : AppCompatActivity() {
+class VideoPlayerActivity : BaseViewModelActivity<VideoPlayerViewModel>(), View.OnClickListener {
 
     private lateinit var player: SimpleExoPlayer
     private lateinit var mediaDataSourceFactory: com.google.android.exoplayer2.upstream.DataSource.Factory
@@ -28,35 +30,63 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var currentWindow: Int = 0
     private var playbackPosition: Long = 0
     private var strUrl: String? = ""
+    private var strId: String? = ""
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun getContentResource(): Int {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         this.window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        setContentView(com.android.techflakepractical.R.layout.activity_video_player)
+        return R.layout.activity_video_player
+    }
+
+    override fun buildViewModel(): VideoPlayerViewModel {
+        return ViewModelProviders.of(this, VideoPlayerViewModelFactory(strId!!))[VideoPlayerViewModel::class.java]
+    }
+
+    override fun initViews() {
+        super.initViews()
         supportActionBar?.hide()
+        imgUpvote.setOnClickListener(this)
+        imgDownVote.setOnClickListener(this)
+    }
 
-
+    override fun getBundle() {
+        super.getBundle()
+        strId = intent?.extras?.getString("id", "")
         strUrl = intent?.extras?.getString("url", "")
     }
 
-    private fun initializePlayer() {
+    override fun onClick(view: View?) {
 
+        when (view?.id) {
+            R.id.imgUpvote -> {
+                viewModel.increment()
+            }
+            R.id.imgDownVote -> {
+                viewModel.decrement()
+
+            }
+        }
+    }
+
+    override fun initLiveDataObservers() {
+        super.initLiveDataObservers()
+        viewModel.countLiveData.observe(this, SafeObserver(this::updateCount))
+    }
+
+    private fun updateCount(count: Int) {
+        txtCount.text = "" + count
+    }
+
+    private fun initializePlayer() {
         trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
         mediaDataSourceFactory = DefaultDataSourceFactory(this, Util.getUserAgent(this, "mediaPlayerSample"))
-
         val mediaSource = ExtractorMediaSource.Factory(mediaDataSourceFactory)
             .createMediaSource(Uri.parse(strUrl))
-
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
-
-
         with(player) {
             prepare(mediaSource, false, false)
             playWhenReady = true
         }
-
-
 
         player.addListener(object : ExoPlayer.EventListener {
             override fun onLoadingChanged(isLoading: Boolean) {
@@ -95,18 +125,14 @@ class VideoPlayerActivity : AppCompatActivity() {
                 }
             }
         })
-
-
         playerView?.setShutterBackgroundColor(Color.TRANSPARENT)
         playerView?.player = player
         playerView?.requestFocus()
-
         lastSeenTrackGroupArray = null
     }
 
 
     private fun updateStartPosition() {
-
         with(player) {
             playbackPosition = currentPosition
             currentWindow = currentWindowIndex

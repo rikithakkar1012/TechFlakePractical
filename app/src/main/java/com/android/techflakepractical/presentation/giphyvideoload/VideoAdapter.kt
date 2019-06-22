@@ -14,14 +14,12 @@ class VideoAdapter(private val onItemSelected: (data: VideosModel.DataBean) -> U
     RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
 
     var videos = ArrayList<VideosModel.DataBean>()
-    var context: Context? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
         return VideoViewHolder(parent.inflate(R.layout.row_giphy_videos))
     }
 
-    fun setList(predictions: ArrayList<VideosModel.DataBean>?, clear: Boolean = false , context: Context) {
-        this.context = context
+    fun setList(predictions: ArrayList<VideosModel.DataBean>?, clear: Boolean = false, context: Context) {
         if (clear) this.videos.clear()
         predictions?.let {
             this.videos.addAll(it)
@@ -45,9 +43,7 @@ class VideoAdapter(private val onItemSelected: (data: VideosModel.DataBean) -> U
     inner class VideoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         fun bind(prediction: VideosModel.DataBean) {
-
-            context?.let { Glide.with(it).load(prediction.images!!.img_to_load!!.url).into(itemView.imgVideoThumb) }
-
+            Glide.with(itemView.context).load(prediction.images!!.img_to_load!!.url).into(itemView.imgVideoThumb)
             //itemView.tvPlaceName.text = prediction.id
             itemView.setOnClickListener {
                 onItemSelected(prediction)

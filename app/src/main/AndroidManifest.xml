@@ -4,8 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-
     <application
+            android:name=".presentation.app.AppController"
             android:usesCleartextTraffic="true"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -25,6 +25,7 @@
         <activity
                 android:name=".presentation.exoplayer.VideoPlayerActivity"
                 android:screenOrientation="portrait">
-        </activity>    </application>
+        </activity>
+    </application>
 
 </manifest>
